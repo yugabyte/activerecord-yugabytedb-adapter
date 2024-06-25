@@ -1,8 +1,6 @@
-# ActiverecordYugabytedbAdapter
+# ActiveRecord YugabyteDB Adapter
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/activerecord-yugabytedb-adapter`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+This is an adapter for YugabyteDB for ActiveRecord. The adapter uses YugabyteDB's Ruby smart driver underneath. The adapter code is derived from the [PostgreSQL adapter v7.0.4 for ActiveRecord in the Rails repository](https://github.com/rails/rails/tree/v7.0.4/activerecord/lib/active_record/connection_adapters).
 
 ## Installation
 
@@ -16,7 +14,7 @@ If bundler is not being used to manage dependencies, install the gem by executin
 
 ## Usage
 
-TODO: Write usage instructions here
+Check this [simple example](https://github.com/YugabyteDB-Samples/orm-examples/tree/ruby-smart-driver) for usage of this adapter.
 
 ## Development
 
@@ -30,4 +28,4 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/yugaby
 
 ## Code of Conduct
 
-Everyone interacting in the ActiverecordYugabytedbAdapter project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/yugabyte/activerecord-yugabytedb-adapter/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in this project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/yugabyte/activerecord-yugabytedb-adapter/blob/master/CODE_OF_CONDUCT.md).

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    activerecord-yugabytedb-adapter (7.0.4)
+    activerecord-yugabytedb-adapter (7.0.4.1)
       activerecord (= 7.0.4)
       yugabyte_ysql (~> 0.3)
 
