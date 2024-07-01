@@ -1,6 +1,6 @@
 # ActiveRecord YugabyteDB Adapter
 
-This is an adapter for YugabyteDB for ActiveRecord. The adapter uses YugabyteDB's Ruby smart driver underneath. The adapter code is derived from the [PostgreSQL adapter v7.0.4 for ActiveRecord in the Rails repository](https://github.com/rails/rails/tree/v7.0.4/activerecord/lib/active_record/connection_adapters).
+This is an adapter for YugabyteDB for ActiveRecord. The adapter uses YugabyteDB's Ruby smart driver underneath. The adapter code is derived from the [PostgreSQL adapter v7.1.3.4 for ActiveRecord in the Rails repository](https://github.com/rails/rails/tree/v7.1.3.4/activerecord/lib/active_record/connection_adapters).
 
 ## Installation
 
