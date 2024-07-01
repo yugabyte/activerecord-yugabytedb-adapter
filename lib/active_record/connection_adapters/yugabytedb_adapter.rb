@@ -3,6 +3,7 @@
 gem "yugabyte_ysql", "~> 0.3"
 require "yugabyte_ysql"
 
+require_relative "../../arel/visitors/yugabytedb"
 require "active_support/core_ext/object/try"
 require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/statement_pool"
