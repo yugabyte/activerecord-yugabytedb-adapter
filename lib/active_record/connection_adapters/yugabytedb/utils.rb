@@ -12,7 +12,7 @@ module ActiveRecord
         attr_reader :schema, :identifier
 
         def initialize(schema, identifier)
-          @schema, @identifier = unquote(schema), unquote(identifier)
+          @schema, @identifier = Utils.unquote_identifier(schema), Utils.unquote_identifier(identifier)
         end
 
         def to_s
@@ -21,9 +21,9 @@ module ActiveRecord
 
         def quoted
           if schema
-            YugabyteYSQL::Connection.quote_ident(schema) << SEPARATOR << YugabyteYSQL::Connection.quote_ident(identifier)
+            YSQL::Connection.quote_ident(schema) << SEPARATOR << YSQL::Connection.quote_ident(identifier)
           else
-            YugabyteYSQL::Connection.quote_ident(identifier)
+            YSQL::Connection.quote_ident(identifier)
           end
         end
 
@@ -39,15 +39,6 @@ module ActiveRecord
         protected
           def parts
             @parts ||= [@schema, @identifier].compact
-          end
-
-        private
-          def unquote(part)
-            if part && part.start_with?('"')
-              part[1..-2]
-            else
-              part
-            end
           end
       end
 
@@ -73,6 +64,14 @@ module ActiveRecord
             schema = nil
           end
           YugabyteDB::Name.new(schema, table)
+        end
+
+        def unquote_identifier(identifier)
+          if identifier && identifier.start_with?('"')
+            identifier[1..-2]
+          else
+            identifier
+          end
         end
       end
     end
