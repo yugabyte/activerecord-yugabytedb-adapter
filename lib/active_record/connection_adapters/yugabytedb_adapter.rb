@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-gem "yugabyte_ysql", "~> 0.3"
-require "yugabyte_ysql"
+gem "yugabytedb-ysql", "~> 0.3"
+require "ysql"
 
 require_relative "../../arel/visitors/yugabytedb"
 require "active_support/core_ext/object/try"
@@ -67,8 +67,8 @@ module ActiveRecord
 
       class << self
         def new_client(conn_params)
-          YugabyteYSQL.connect(**conn_params)
-        rescue ::YugabyteYSQL::Error => error
+          YSQL.connect(**conn_params)
+        rescue ::YSQL::Error => error
           if conn_params && conn_params[:dbname] == "postgres"
             raise ActiveRecord::ConnectionNotEstablished, error.message
           elsif conn_params && conn_params[:dbname] && error.message.include?(conn_params[:dbname])
@@ -313,9 +313,9 @@ module ActiveRecord
             # don't need the complication of with_raw_connection because
             # a reconnect would invalidate the entire statement pool.)
             if conn = @connection.instance_variable_get(:@raw_connection)
-              conn.query "DEALLOCATE #{key}" if conn.status == YugabyteYSQL::CONNECTION_OK
+              conn.query "DEALLOCATE #{key}" if conn.status == YSQL::CONNECTION_OK
             end
-          rescue YugabyteYSQL::Error
+          rescue YSQL::Error
           end
       end
 
@@ -330,7 +330,7 @@ module ActiveRecord
         conn_params[:dbname] = conn_params.delete(:database) if conn_params[:database]
 
         # Forward only valid config params to PG::Connection.connect.
-        valid_conn_param_keys = YugabyteYSQL::Connection.conndefaults_hash.keys + [:requiressl]
+        valid_conn_param_keys = YSQL::Connection.conndefaults_hash.keys + [:requiressl]
         conn_params.slice!(*valid_conn_param_keys)
 
         @connection_parameters = conn_params
@@ -350,7 +350,7 @@ module ActiveRecord
           @raw_connection.query ";"
         end
         true
-      rescue YugabyteYSQL::Error
+      rescue YSQL::Error
         false
       end
 
@@ -370,7 +370,7 @@ module ActiveRecord
         @lock.synchronize do
           return connect! unless @raw_connection
 
-          unless @raw_connection.transaction_status == ::YugabyteYSQL::PQTRANS_IDLE
+          unless @raw_connection.transaction_status == ::YSQL::PQTRANS_IDLE
             @raw_connection.query "ROLLBACK"
           end
           @raw_connection.query "DISCARD ALL"
@@ -776,11 +776,11 @@ module ActiveRecord
         def translate_exception(exception, message:, sql:, binds:)
           return exception unless exception.respond_to?(:result)
 
-          case exception.result.try(:error_field, YugabyteYSQL::PG_DIAG_SQLSTATE)
+          case exception.result.try(:error_field, YSQL::PG_DIAG_SQLSTATE)
           when nil
             if exception.message.match?(/connection is closed/i)
               ConnectionNotEstablished.new(exception, connection_pool: @pool)
-            elsif exception.is_a?(YugabyteYSQL::ConnectionBad)
+            elsif exception.is_a?(YSQL::ConnectionBad)
               # libpq message style always ends with a newline; the pg gem's internal
               # errors do not. We separate these cases because a pg-internal
               # ConnectionBad means it failed before it managed to send the query,
@@ -822,7 +822,7 @@ module ActiveRecord
         def retryable_query_error?(exception)
           # We cannot retry anything if we're inside a broken transaction; we need to at
           # least raise until the innermost savepoint is rolled back
-          @raw_connection&.transaction_status != ::YugabyteYSQL::PQTRANS_INERROR &&
+          @raw_connection&.transaction_status != ::YSQL::PQTRANS_INERROR &&
             super
         end
 
@@ -941,8 +941,8 @@ module ActiveRecord
         # https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/utils/cache/plancache.c#l573
         def is_cached_plan_failure?(e)
           pgerror = e.cause
-          pgerror.result.result_error_field(YugabyteYSQL::PG_DIAG_SQLSTATE) == FEATURE_NOT_SUPPORTED &&
-            pgerror.result.result_error_field(YugabyteYSQL::PG_DIAG_SOURCE_FUNCTION) == "RevalidateCachedQuery"
+          pgerror.result.result_error_field(YSQL::PG_DIAG_SQLSTATE) == FEATURE_NOT_SUPPORTED &&
+            pgerror.result.result_error_field(YSQL::PG_DIAG_SOURCE_FUNCTION) == "RevalidateCachedQuery"
         rescue
           false
         end
@@ -986,7 +986,7 @@ module ActiveRecord
         def reconnect
           begin
             @raw_connection&.reset
-          rescue YugabyteYSQL::ConnectionBad
+          rescue YSQL::ConnectionBad
             @raw_connection = nil
           end
 
@@ -1004,9 +1004,9 @@ module ActiveRecord
 
           unless ActiveRecord.db_warnings_action.nil?
             @raw_connection.set_notice_receiver do |result|
-              message = result.error_field(YugabyteYSQL::Result::PG_DIAG_MESSAGE_PRIMARY)
-              code = result.error_field(YugabyteYSQL::Result::PG_DIAG_SQLSTATE)
-              level = result.error_field(YugabyteYSQL::Result::PG_DIAG_SEVERITY)
+              message = result.error_field(YSQL::Result::PG_DIAG_MESSAGE_PRIMARY)
+              code = result.error_field(YSQL::Result::PG_DIAG_SQLSTATE)
+              level = result.error_field(YSQL::Result::PG_DIAG_SEVERITY)
               @notice_receiver_sql_warnings << SQLWarning.new(message, code, level, nil, @pool)
             end
           end
@@ -1124,18 +1124,18 @@ module ActiveRecord
         end
 
         def add_pg_encoders
-          map = YugabyteYSQL::TypeMapByClass.new
-          map[Integer] = YugabyteYSQL::TextEncoder::Integer.new
-          map[TrueClass] = YugabyteYSQL::TextEncoder::Boolean.new
-          map[FalseClass] = YugabyteYSQL::TextEncoder::Boolean.new
+          map = YSQL::TypeMapByClass.new
+          map[Integer] = YSQL::TextEncoder::Integer.new
+          map[TrueClass] = YSQL::TextEncoder::Boolean.new
+          map[FalseClass] = YSQL::TextEncoder::Boolean.new
           @raw_connection.type_map_for_queries = map
         end
 
         def update_typemap_for_default_timezone
           if @raw_connection && @mapped_default_timezone != default_timezone && @timestamp_decoder
             decoder_class = default_timezone == :utc ?
-                              YugabyteYSQL::TextDecoder::TimestampUtc :
-                              YugabyteYSQL::TextDecoder::TimestampWithoutTimeZone
+                              YSQL::TextDecoder::TimestampUtc :
+                              YSQL::TextDecoder::TimestampWithoutTimeZone
 
             @timestamp_decoder = decoder_class.new(**@timestamp_decoder.to_h)
             @raw_connection.type_map_for_results.add_coder(@timestamp_decoder)
@@ -1155,16 +1155,16 @@ module ActiveRecord
           @timestamp_decoder = nil
 
           coders_by_name = {
-            "int2" => YugabyteYSQL::TextDecoder::Integer,
-            "int4" => YugabyteYSQL::TextDecoder::Integer,
-            "int8" => YugabyteYSQL::TextDecoder::Integer,
-            "oid" => YugabyteYSQL::TextDecoder::Integer,
-            "float4" => YugabyteYSQL::TextDecoder::Float,
-            "float8" => YugabyteYSQL::TextDecoder::Float,
-            "numeric" => YugabyteYSQL::TextDecoder::Numeric,
-            "bool" => YugabyteYSQL::TextDecoder::Boolean,
-            "timestamp" => YugabyteYSQL::TextDecoder::TimestampUtc,
-            "timestamptz" => YugabyteYSQL::TextDecoder::TimestampWithTimeZone,
+            "int2" => YSQL::TextDecoder::Integer,
+            "int4" => YSQL::TextDecoder::Integer,
+            "int8" => YSQL::TextDecoder::Integer,
+            "oid" => YSQL::TextDecoder::Integer,
+            "float4" => YSQL::TextDecoder::Float,
+            "float8" => YSQL::TextDecoder::Float,
+            "numeric" => YSQL::TextDecoder::Numeric,
+            "bool" => YSQL::TextDecoder::Boolean,
+            "timestamp" => YSQL::TextDecoder::TimestampUtc,
+            "timestamptz" => YSQL::TextDecoder::TimestampWithTimeZone,
           }
 
           known_coder_types = coders_by_name.keys.map { |n| quote(n) }
@@ -1177,13 +1177,13 @@ module ActiveRecord
             result.filter_map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
           end
 
-          map = YugabyteYSQL::TypeMapByOid.new
+          map = YSQL::TypeMapByOid.new
           coders.each { |coder| map.add_coder(coder) }
           @raw_connection.type_map_for_results = map
 
-          @type_map_for_results = YugabyteYSQL::TypeMapByOid.new
+          @type_map_for_results = YSQL::TypeMapByOid.new
           @type_map_for_results.default_type_map = map
-          @type_map_for_results.add_coder(YugabyteYSQL::TextDecoder::Bytea.new(oid: 17, name: "bytea"))
+          @type_map_for_results.add_coder(YSQL::TextDecoder::Bytea.new(oid: 17, name: "bytea"))
           @type_map_for_results.add_coder(MoneyDecoder.new(oid: 790, name: "money"))
 
           # extract timestamp decoder for use in update_typemap_for_default_timezone
@@ -1196,7 +1196,7 @@ module ActiveRecord
           coder_class.new(oid: row["oid"].to_i, name: row["typname"])
         end
 
-        class MoneyDecoder < YugabyteYSQL::SimpleDecoder # :nodoc:
+        class MoneyDecoder < YSQL::SimpleDecoder # :nodoc:
           TYPE = OID::Money.new
 
           def decode(value, tuple = nil, field = nil)

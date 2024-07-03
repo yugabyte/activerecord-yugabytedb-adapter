@@ -136,7 +136,7 @@ module ActiveRecord
         end
 
         private
-          IDLE_TRANSACTION_STATUSES = [YugabyteYSQL::PQTRANS_IDLE, YugabyteYSQL::PQTRANS_INTRANS, YugabyteYSQL::PQTRANS_INERROR]
+          IDLE_TRANSACTION_STATUSES = [YSQL::PQTRANS_IDLE, YSQL::PQTRANS_INTRANS, YSQL::PQTRANS_INERROR]
           private_constant :IDLE_TRANSACTION_STATUSES
 
           def cancel_any_running_query
@@ -144,7 +144,7 @@ module ActiveRecord
 
             @raw_connection.cancel
             @raw_connection.block
-          rescue YugabyteYSQL::Error
+          rescue YSQL::Error
           end
 
           def execute_batch(statements, name = nil)

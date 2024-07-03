@@ -91,7 +91,7 @@ module ActiveRecord
 
         # Quotes schema names for use in SQL queries.
         def quote_schema_name(name)
-          YugabyteYSQL::Connection.quote_ident(name)
+          YSQL::Connection.quote_ident(name)
         end
 
         def quote_table_name_for_assignment(table, attr)
@@ -100,7 +100,7 @@ module ActiveRecord
 
         # Quotes column names for use in SQL queries.
         def quote_column_name(name) # :nodoc:
-          QUOTED_COLUMN_NAMES[name] ||= YugabyteYSQL::Connection.quote_ident(super).freeze
+          QUOTED_COLUMN_NAMES[name] ||= YSQL::Connection.quote_ident(super).freeze
         end
 
         # Quote date/time values for use in SQL input.

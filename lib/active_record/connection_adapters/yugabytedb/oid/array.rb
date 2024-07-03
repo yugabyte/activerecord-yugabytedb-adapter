@@ -16,8 +16,8 @@ module ActiveRecord
             @subtype = subtype
             @delimiter = delimiter
 
-            @pg_encoder = YugabyteYSQL::TextEncoder::Array.new name: "#{type}[]", delimiter: delimiter
-            @pg_decoder = YugabyteYSQL::TextDecoder::Array.new name: "#{type}[]", delimiter: delimiter
+            @pg_encoder = YSQL::TextEncoder::Array.new name: "#{type}[]", delimiter: delimiter
+            @pg_decoder = YSQL::TextDecoder::Array.new name: "#{type}[]", delimiter: delimiter
           end
 
           def deserialize(value)

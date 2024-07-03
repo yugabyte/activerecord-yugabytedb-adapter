@@ -21,9 +21,9 @@ module ActiveRecord
 
         def quoted
           if schema
-            YugabyteYSQL::Connection.quote_ident(schema) << SEPARATOR << YugabyteYSQL::Connection.quote_ident(identifier)
+            YSQL::Connection.quote_ident(schema) << SEPARATOR << YSQL::Connection.quote_ident(identifier)
           else
-            YugabyteYSQL::Connection.quote_ident(identifier)
+            YSQL::Connection.quote_ident(identifier)
           end
         end
 
