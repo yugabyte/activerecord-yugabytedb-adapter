@@ -14,7 +14,13 @@ If bundler is not being used to manage dependencies, install the gem by executin
 
 ## Usage
 
-Check this [simple example](https://github.com/YugabyteDB-Samples/orm-examples/tree/ruby-smart-driver) for usage of this adapter.
+Include the gem in your `Gemfile`
+```ruby
+    gem 'rails', '7.1.3.4'
+    gem 'activerecord-yugabytedb-adapter', '7.1.3.4'
+```
+
+Check this [simple example](https://github.com/YugabyteDB-Samples/orm-examples/tree/ruby-smart-driver/ruby/ror) for usage of this adapter.
 
 ## Development
 
