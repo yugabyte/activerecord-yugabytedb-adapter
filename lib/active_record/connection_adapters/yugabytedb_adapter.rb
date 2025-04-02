@@ -21,14 +21,12 @@ require "active_record/connection_adapters/yugabytedb/type_metadata"
 require "active_record/connection_adapters/yugabytedb/utils"
 
 module ActiveRecord
-  module ConnectionHandling # :nodoc:
-    def yugabytedb_adapter_class
-      ConnectionAdapters::YugabyteDBAdapter
-    end
-
-    # Establishes a connection to the database that's used by all Active Record objects
-    def yugabytedb_connection(config)
-      yugabytedb_adapter_class.new(config)
+  if Rails.gem_version < Gem::Version.new("7.2.0.alpha")
+    module ConnectionHandling # :nodoc:
+      # Establishes a connection to the database that's used by all Active Record objects
+      def yugabytedb_connection(config)
+        ConnectionAdapters::YugabyteDBAdapter.new(config)
+      end
     end
   end
 
